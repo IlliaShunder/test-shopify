@@ -1,0 +1,214 @@
+<link rel="stylesheet" href="{{ 'section-header.css' | asset_url }}" media="print" onload="this.media='all'">
+
+{%- style -%}
+.header {
+padding: {{ section.settings.padding }}rem 0;
+margin-bottom: {{ section.settings.margin_bottom }}px;
+{% if section.settings.separator_line == false %}
+border-bottom: none;
+{% endif %}
+}
+.header__logo img {
+width: {{section.settings.logo_width}}px;
+}
+{% if section.settings.sticky == true %}
+header{
+position: -webkit-sticky;
+position: sticky;
+top: 0;
+}
+{% endif %}
+{%- endstyle -%}
+
+<div class="header {{ section.settings.header_color }}">
+    <div class="page-width">
+        <div class="header__row">
+            <div class="header__left">
+                {% if section.settings.logo_image %}
+                <div class="header__logo"><img src="{{ section.settings.logo_image | img_url: image_size }}" alt="">
+                </div>
+                {% endif %}
+                <div class="header__menu">
+                    {% for link in section.settings.menu.links %}
+                    {%- if link.links != blank -%}
+                    <div class="header__item header-item main">
+                        <div class="header__link main">
+                            <div class="header-item__title">{{ link.title }}</div>
+                            <div class="header-item__icon">{% render 'icon-caret' %}</div>
+                        </div>
+                        <div class="header-item__block">
+                            <div class="header-item__content">
+                                {%- for childlink in link.links -%}
+                                {%- if childlink.links != blank -%}
+                                <div class="header-item">
+                                    <div class="header__link header-item__name">
+                                        <div class="header-item__title">{{ childlink.title }}</div>
+                                        <div class="header-item__icon">{% render 'icon-caret' %}</div>
+                                    </div>
+                                    <div class="header-item__list">
+                                        {%- for grandchildlink in childlink.links -%}
+                                        <a href="{{ grandchildlink.url }}"
+                                            class="header__link header-item__name {% if grandchildlink.current %}active{% endif %}">{{
+                                            grandchildlink.title
+                                            }}</a>
+                                        {%- endfor -%}
+                                    </div>
+                                </div>
+                                {%- else -%}
+                                <a href="{{ childlink.url }}"
+                                    class="header__link header-item__name {% if childlink.current %}active{% endif %}">{{
+                                    childlink.title
+                                    }}</a>
+                                {%- endif -%}
+                                {%- endfor -%}
+                            </div>
+                        </div>
+                    </div>
+                    {%- else -%}
+                    <a href="{{ link.url }}" class="header__link {% if link.current %}active{% endif %}">{{ link.title
+                        }}</a>
+                    {%- endif -%}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="header__right">
+                <div class="header__icon search">
+                    <div class="svg">{% render 'icon-search' %}</div>
+                    <div class="header-search">
+                        <div class="header-search__body">
+                            <form action="{{ routes.search_url }}" method="get" class="header-search__form">
+                                <input name="q" value="" type="text" placeholder="Search">
+                                <div class="header-search__btn">
+                                    {% render 'icon-search' %}
+                                </div>
+                            </form>
+                            <div class="header-search__close">
+                                {% render 'icon-close' %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header__icon cart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function init() {
+        const search = document.querySelector(".header__icon.search");
+        const form = search.querySelector(".header-search__form");
+        const formSub = form.querySelector(".header-search__btn");
+        const close = search.querySelector(".header-search__close");
+        const headerItems = document.querySelectorAll('.header-item.main');
+        const headerItemsName = document.querySelectorAll('.header-item__name');
+
+        search.querySelector(".svg").addEventListener("click", () => {
+            search.querySelector(".header-search").classList.toggle("active");
+        });
+        document.addEventListener("click", (e) => {
+            if (search.querySelector(".header-search").classList.contains("active") && !e.target.closest(".header__icon.search")) {
+                search.querySelector(".header-search").classList.remove("active");
+            }
+        });
+        formSub.addEventListener("click", () => {
+            form.submit();
+        });
+        close.addEventListener("click", () => {
+            search.querySelector(".header-search").classList.remove("active");
+        });
+        headerItems.forEach((el) => {
+            el.querySelector(".header__link.main").addEventListener('click', () => {
+                el.classList.toggle("active");
+            });
+        });
+        headerItemsName.forEach((el) => {
+            el.addEventListener('click', () => {
+                if (el.nextElementSibling && el.nextElementSibling.classList.contains("header-item__list")) {
+                    el.nextElementSibling.classList.toggle("active");
+                }
+            });
+
+        });
+    }
+
+    init();
+    document.addEventListener("shopify:section:load", init);
+</script>
+
+{% schema %}
+{
+"name": "Header",
+"tag": "header",
+"settings": [
+{
+"type": "select",
+"id": "header_color",
+"label": "Color scheme",
+"options": [
+{
+"value": "white-background",
+"label": "White background"
+},
+{
+"value": "black-background",
+"label": "Black background"
+}
+]
+},
+{
+"type": "image_picker",
+"id": "logo_image",
+"label": "Logo image"
+},
+{
+"type": "link_list",
+"id": "menu",
+"default": "main-menu",
+"label": "Menu"
+},
+{
+"type": "range",
+"id": "padding",
+"min": 1,
+"max": 4,
+"step": 1,
+"unit": "rem",
+"label": "Padding top/bottom",
+"default": 2
+},
+{
+"type": "range",
+"id": "margin_bottom",
+"min": 0,
+"max": 100,
+"step": 5,
+"unit": "px",
+"label": "Margin bottom",
+"default": 50
+},
+{
+"type": "checkbox",
+"id": "separator_line",
+"label": "Show separator line",
+"default": true
+},
+{
+"type": "range",
+"id": "logo_width",
+"min": 50,
+"max": 300,
+"step": 10,
+"unit": "px",
+"label": "Logo width",
+"default": 90
+},
+{
+"type": "checkbox",
+"id": "sticky",
+"label": "Enable sticky header",
+"default": true
+}
+]
+}
+{% endschema %}
